@@ -1,9 +1,8 @@
 package com.example.sarah
 
-import org.junit.jupiter.api.BeforeAll
+import kotlinx.coroutines.awaitAll
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.event.annotation.BeforeTestClass
 import java.io.File
 import java.util.UUID.randomUUID
 
@@ -23,7 +22,9 @@ class SarahApplicationTests {
 
         for(i in 0..3000)
             Memtable().put(randomUUID().toString(), randomUUID().toString());
+
     }
+
 
 
 

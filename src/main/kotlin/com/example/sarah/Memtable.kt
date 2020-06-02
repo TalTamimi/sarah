@@ -30,10 +30,9 @@ class Memtable() {
         val entries = oldMemtable.entries
 
         GlobalScope.launch {
-            flush()
+            writeSegmentToDisk(entries)
         }
 
-        writeSegmentToDisk(entries)
     }
 
     private fun writeSegmentToDisk(entries: Set<Entry<String, String>>) {
