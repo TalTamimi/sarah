@@ -1,31 +1,53 @@
 package com.example.sarah
 
-import kotlinx.coroutines.awaitAll
-import org.junit.jupiter.api.Test
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.util.ResourceUtils;
 import java.io.File
-import java.util.UUID.randomUUID
 
 @SpringBootTest
-class SarahApplicationTests {
+class SarahApplicationTests() {
+    companion object {
+        val db = DB()
+    }
 
-    @Test
-    fun resetData(){
-       val dataFolder= File("./data/")
+    @Before
+    fun clearContext() {
+        val dataFolder = File("./data/")
         dataFolder.deleteRecursively()
         dataFolder.mkdir()
+        loadData()
+    }
+
+    fun loadData() {
+        ResourceUtils.getFile("classpath:sample")
+                .walkBottomUp()
+                .filter { it.isFile }
+                .forEach { file ->
+                    file.useLines { sequence ->
+                        sequence.map { s ->
+                            s.split('\t')
+                        }.forEach {
+                            db.put(it[0], it[1])
+                        }
+                    }
+                }
+    }
+    @Test
+    fun findLast() {
+        assertEquals("hello3", db.get("test3"))
+    }
+
+
+    @Test
+    fun findMiddle() {
+        assertEquals("hello2", db.get("test2"))
     }
 
     @Test
-    fun contextLoads() {
-
-
-        for(i in 0..3000)
-            Memtable().put(randomUUID().toString(), randomUUID().toString());
-
+    fun findFirst() {
+        assertEquals("hello1", db.get("test1"))
     }
-
-
-
-
 }

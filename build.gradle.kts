@@ -24,13 +24,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
-    }
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+//    {
+//        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+//    }
     testImplementation("io.projectreactor:reactor-test")
-//    testImplementation("io.kotest:kotest-runner-junit5-jvm:<version>") // for kotest framework
-//    testImplementation("io.kotest:kotest-assertions-core-jvm:<version>") // for kotest core jvm assertions
-//    testImplementation("io.kotest:kotest-property-jvm:<version>") // for kotest property test
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
+
+
 }
 
 tasks.withType<Test> {
