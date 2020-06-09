@@ -9,13 +9,16 @@ import kotlin.collections.LinkedHashMap
 
 @Service
 class DB {
-    companion object {
-        var memtable: TreeMap<String, String> = TreeMap()
-        val Segments = LinkedHashMap<Long, TreeMap<String, String>>()
+    var memtable: TreeMap<String, String> = TreeMap()
+    val segments = LinkedHashMap<String, TreeMap<String, String>>()
+
+    fun clear(){
+        memtable.clear()
+        segments.clear()
     }
 
     fun get(key: String): String? {
-        return memtable[key] ?: Segments
+        return memtable[key] ?: segments
                 .values
                 .reversed()
                 .find { it[key] != null }?.get(key)
@@ -33,19 +36,23 @@ class DB {
 
 
     private fun flush() {
-        val timeStamp = now().toEpochMilli()
-        Segments[timeStamp] = memtable
-        memtable = TreeMap()
-        val entries = Segments.values.last().entries
 
-        GlobalScope.launch {
-            writeSegmentToDisk(timeStamp, entries)
+        synchronized(segments) {
+            val uniqueFileIdentifier = "${now().toEpochMilli()}_${segments.size}"
+            segments[uniqueFileIdentifier] = memtable
+            memtable = TreeMap()
+            val entries = segments.values.last().entries
+
+            GlobalScope.launch {
+                writeSegmentToDisk(uniqueFileIdentifier, entries)
+            }
         }
+
 
     }
 
-    private fun writeSegmentToDisk(timestamp: Long, entries: MutableSet<MutableMap.MutableEntry<String, String>>) {
-        File("./data/${timestamp}.sst")
+    private fun writeSegmentToDisk(fileName: String, entries: MutableSet<MutableMap.MutableEntry<String, String>>) {
+        File("./data/${fileName}.sst")
                 .bufferedWriter()
                 .use { out -> entries.forEach { out.write("${it.key}\t${it.value}\n") } }
     }

@@ -15,6 +15,7 @@ class SarahApplicationTests() {
 
     @Before
     fun clearContext() {
+        db.clear()
         val dataFolder = File("./data/")
         dataFolder.deleteRecursively()
         dataFolder.mkdir()
