@@ -5,6 +5,7 @@ data class Row(val key: String, val value: String) : Comparable<Row> {
 
     override fun toString(): String {
         return "$key\t$value\n"
+
     }
 
     override fun equals(other: Any?): Boolean {

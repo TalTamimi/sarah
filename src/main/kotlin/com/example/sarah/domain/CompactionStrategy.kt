@@ -1,7 +1,13 @@
 package com.example.sarah.domain
 
-enum class MergeAlgorithm : Comparator<Row> {
-    BUFFERED_MERGE_SORT {
+import java.util.*
+import kotlin.Comparator
+
+
+enum class CompactionStrategy : SearchExecutor, Comparator<Row> {
+    BUFFERED_COMPACTION_STRATEGY {
+        override fun search(mergedSST: MutableList<Row>, row: Row) = Collections.binarySearch(mergedSST, row, this)
+
         override fun compare(s1: Row, other: Row): Int {
             var thisMarker = 0
             var thatMarker = 0
@@ -43,7 +49,9 @@ enum class MergeAlgorithm : Comparator<Row> {
             return 0
         }
     },
-    IN_MEMORY_MERGE_SORT {
+    IN_MEMORY_COMPACTION_STRATEGY {
+        override fun search(mergedSST: MutableList<Row>, row: Row) = mergedSST.indexOf(row)
+
         override fun compare(s1: Row, other: Row): Int {
             var thisMarker = 0
             var thatMarker = 0
@@ -118,4 +126,8 @@ enum class MergeAlgorithm : Comparator<Row> {
     internal fun isDigit(ch: Char): Boolean {
         return ch in '0'..'9'
     }
+}
+
+interface SearchExecutor {
+    fun search(mergedSST: MutableList<Row>, row: Row): Int
 }

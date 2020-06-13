@@ -3,13 +3,13 @@ package com.example.sarah.domain
 import java.io.File
 import kotlin.streams.toList
 
-data class Data(val rows: List<Row>, val fileIndex: Int, val offset: Long, val lineIndex: Int) {
+data class BufferedRows(val rows: List<Row>, val fileIndex: Int, val offset: Long, val lineIndex: Int) {
 
-    fun getNextCandidate(f: MutableList<File>): Data? {
+    fun getNextCandidate(f: MutableList<File>): BufferedRows? {
         return if ((this.lineIndex + 1) < this.rows.size) {
             this.copy(lineIndex = this.lineIndex + 1)
         } else {
-            val newDataBuffer = Data(f[this.fileIndex]
+            val newDataBuffer = BufferedRows(f[this.fileIndex]
                     .bufferedReader()
                     .lines()
                     .skip(this.offset)

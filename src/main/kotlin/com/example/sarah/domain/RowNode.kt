@@ -1,21 +1,28 @@
-package com.example.sarah.util
+package com.example.sarah.domain
 
-import com.example.sarah.domain.Row
+data class RowNode(val row: Row, val fileIndex: Int, val lineIndex: Int) : Comparable<RowNode> {
 
+    companion object {
+        fun fromBufferedRows(bufferedRows: BufferedRows) = RowNode(bufferedRows.rows[bufferedRows.lineIndex], bufferedRows.fileIndex, bufferedRows.lineIndex)
+    }
 
-class AlphabetComparatorRow : Comparator<Row> {
-    override fun compare(s1: Row, other: Row): Int {
+    override fun compareTo(other: RowNode): Int {
         var thisMarker = 0
         var thatMarker = 0
-        val thisLength = s1.key.length
-        val s2Length = other.key.length
+        val thisLength = this.row.key.length
+        val s2Length = other.row.key.length
 
-
+        if (this.row.key == other.row.key) {
+            if (this.fileIndex < other.fileIndex) {
+                return -1
+            }
+            return 1
+        }
         while (thisMarker < thisLength && thatMarker < s2Length) {
-            val thisChunk = getChunk(s1.key, thisLength, thisMarker)
+            val thisChunk = getChunk(this.row.key, thisLength, thisMarker)
             thisMarker += thisChunk.length
 
-            val thatChunk = getChunk(other.key, s2Length, thatMarker)
+            val thatChunk = getChunk(other.row.key, s2Length, thatMarker)
             thatMarker += thatChunk.length
 
             // If both chunks contain numeric characters, sort them numerically.
@@ -26,7 +33,7 @@ class AlphabetComparatorRow : Comparator<Row> {
                 result = thisChunkLength - thatChunk.length
                 // If equal, the first different number counts.
                 if (result == 0) {
-                    for (i in 0 until thisChunkLength) {
+                    for (i in 0..thisChunkLength - 1) {
                         result = thisChunk[i] - thatChunk[i]
                         if (result != 0) {
                             return result
@@ -42,7 +49,7 @@ class AlphabetComparatorRow : Comparator<Row> {
             }
         }
 
-        return -1
+        return thisLength - s2Length
     }
 
     private fun getChunk(string: String, length: Int, marker: Int): String {
