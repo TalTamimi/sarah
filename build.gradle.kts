@@ -29,7 +29,7 @@ dependencies {
 //        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 //    }
     testImplementation("io.projectreactor:reactor-test")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.7")
 
 
 }

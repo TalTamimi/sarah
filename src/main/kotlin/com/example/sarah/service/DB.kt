@@ -1,4 +1,4 @@
-package com.example.sarah
+package com.example.sarah.service
 
 import kotlinx.coroutines.*
 import org.springframework.stereotype.Service

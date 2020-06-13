@@ -1,5 +1,6 @@
 package com.example.sarah
 
+import com.example.sarah.service.DB
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
