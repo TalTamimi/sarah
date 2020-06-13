@@ -3,7 +3,7 @@ package com.example.sarah.util
 import com.example.sarah.domain.Row
 
 
-class AlphabetComparator : Comparator<Row> {
+class AlphabetComparatorRow : Comparator<Row> {
     override fun compare(s1: Row, other: Row): Int {
         var thisMarker = 0
         var thatMarker = 0
@@ -42,7 +42,7 @@ class AlphabetComparator : Comparator<Row> {
             }
         }
 
-        return 0
+        return -1
     }
 
     private fun getChunk(string: String, length: Int, marker: Int): String {

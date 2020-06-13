@@ -1,9 +1,12 @@
 package com.example.sarah.service
 
 import com.example.sarah.domain.Data
+import com.example.sarah.domain.MergeAlgorithm
+import com.example.sarah.domain.MergeAlgorithm.IN_MEMORY_MERGE_SORT
 import com.example.sarah.domain.QueueNode
 import com.example.sarah.domain.Row
 import com.example.sarah.util.AlphabetComparator
+import com.example.sarah.util.AlphabetComparatorRow
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Service
@@ -24,18 +27,17 @@ class MergeProcessor {
                     file.useLines { lines ->
                         lines.forEach {
                             val rowSplit = it.split("\t")
-                            replaceOrInsert(mergedSST, Row(rowSplit[0], rowSplit[1]))
+                            replaceOrInsert(mergedSST, Row(rowSplit[0], rowSplit[1]), IN_MEMORY_MERGE_SORT)
                         }
                     }
                 }
-        writeToDisk(mergedSST.sortedWith(compareBy(AlphabetComparator()) { it.key }), "distenctSstMerge")
+        writeToDisk(mergedSST.sortedWith(compareBy(AlphabetComparatorRow()) { it }).distinctBy { it.key }, "distenctSstMerge")
     }
 
 
     fun bufferedMergeSort(filesSequence: Sequence<File>) {
-        val mergedSST2 = mutableListOf<Row>()
+        val mergedSST = mutableListOf<Row>()
         val cq = PriorityQueue<QueueNode>()
-
         val files = filesSequence.toMutableList()
 
         val listOfBufferedFiles = files.mapIndexed { index, file ->
@@ -51,7 +53,7 @@ class MergeProcessor {
 
         while (cq.isNotEmpty()) {
             val winner = cq.poll()
-            replaceOrInsert(mergedSST2, winner.row)
+            replaceOrInsert(mergedSST, winner.row, AlphabetComparator())
             val newCandidate = listOfBufferedFiles[winner.fileIndex].getNextCandidate(files)
             if (newCandidate != null) {
                 listOfBufferedFiles[winner.fileIndex] = newCandidate
@@ -59,12 +61,14 @@ class MergeProcessor {
             }
         }
 
-
-        writeToDisk(mergedSST2, "distenctSstMerge2")
+        writeToDisk(mergedSST, "distenctSstMerge2")
     }
 
-    private fun replaceOrInsert(mergedSST: MutableList<Row>, row: Row) {
-        val binarySearchBy = binarySearch(mergedSST, row)
+    private fun replaceOrInsert(mergedSST: MutableList<Row>, row: Row, algorithm: MergeAlgorithm) {
+        if (row.key == "100") {
+            val stop = 1
+        }
+        val binarySearchBy = binarySearch(mergedSST, row, algorithm)
         if (binarySearchBy >= 0) {
             mergedSST[binarySearchBy] = row
             return
