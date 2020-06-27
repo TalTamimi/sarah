@@ -1,6 +1,11 @@
 package com.example.sarah
 
 import com.example.sarah.service.DB
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -9,18 +14,26 @@ import org.springframework.util.ResourceUtils;
 import java.io.File
 
 @SpringBootTest
-class SarahApplicationTests() {
-    companion object {
-        val db = DB()
+class AddElementsTest {
+
+    companion object{
+        val db: DB =DB()
     }
+
 
     @Before
     fun clearContext() {
         db.clear()
-        val dataFolder = File("./data/")
-        dataFolder.deleteRecursively()
-        dataFolder.mkdir()
+        val sstDir = File("./data/sst")
+        val compactionDir = File("./data/compaction")
+        recreateFolder(sstDir)
+        recreateFolder(compactionDir)
         loadData()
+    }
+
+    private fun recreateFolder(sstDir: File) {
+        sstDir.deleteRecursively()
+        sstDir.mkdir()
     }
 
     fun loadData() {
@@ -33,10 +46,16 @@ class SarahApplicationTests() {
                             s.split('\t')
                         }.forEach {
                             db.put(it[0], it[1])
+//                            increase testing dataset size
+//                            for(i in 0..2000)
+//                                db.put(UUID.randomUUID().toString(), UUID.randomUUID().toString())
                         }
                     }
                 }
     }
+
+
+
     @Test
     fun findLast() {
         assertEquals("hello3", db.get("test3"))

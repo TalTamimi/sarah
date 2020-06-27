@@ -1,30 +1,44 @@
 package com.example.sarah.domain
 
+import com.example.sarah.domain.Row.Companion.RowContructor
+import java.io.BufferedReader
 import java.io.File
-import kotlin.streams.toList
+import java.lang.RuntimeException
 
-data class BufferedRows(val rows: List<Row>, val fileIndex: Int, val offset: Long, val lineIndex: Int) {
+class BufferedRows(file: File, private val index: String) : AutoCloseable, Comparable<BufferedRows> {
 
-    fun getNextCandidate(f: MutableList<File>): BufferedRows? {
-        return if ((this.lineIndex + 1) < this.rows.size) {
-            this.copy(lineIndex = this.lineIndex + 1)
-        } else {
-            val newDataBuffer = BufferedRows(f[this.fileIndex]
-                    .bufferedReader()
-                    .lines()
-                    .skip(this.offset)
-                    .limit(100)
-                    .map {
-                        val split = it.split("\t")
-                        Row(split[0], split[1])
-                    }
-                    .toList(), this.fileIndex, this.offset + 100, 0)
+    private val bufferedReader: BufferedReader = file.bufferedReader()
+    private var current: Row
 
-            if (newDataBuffer.rows.isNotEmpty()) {
-                return newDataBuffer
-            }
-            return null
-        }
-
+    init {
+        val nextBuffer = bufferedReader.readLine() ?: throw RuntimeException("Compacting Empty File")
+        current = RowContructor(nextBuffer, index)
+        next()
     }
+
+
+    fun get() = current
+
+    fun next(): Boolean {
+        val nextBuffer = bufferedReader.readLine()
+        return if (nextBuffer == null)
+            false
+        else {
+            current = RowContructor(nextBuffer, index)
+            true
+        }
+    }
+
+    override fun close() {
+        bufferedReader.close()
+    }
+
+    override fun compareTo(other: BufferedRows): Int {
+        return when {
+            current.key < other.current.key -> -1
+            current.key > other.current.key -> 1
+            else -> current.index.compareTo(other.index)
+        }
+    }
+
 }

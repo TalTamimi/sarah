@@ -1,25 +1,26 @@
 package com.example.sarah
 
+import com.example.sarah.service.DB
 import com.example.sarah.service.MergeProcessor
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.util.ResourceUtils
+import java.io.File
 
-@SpringBootTest(classes = [MergeProcessor::class])
-@RunWith(SpringRunner::class)
+
 class MergeSSTTests {
 
-    @Autowired
-    private lateinit var mergeProcessor: MergeProcessor
+
+    private val db = DB()
+    private val mergeProcessor = MergeProcessor(db)
     private val mainThreadSurrogate = newSingleThreadContext("singleThreadForCoroutinesTest")
 
 
@@ -44,47 +45,14 @@ class MergeSSTTests {
                         .walkTopDown()
                         .filter { it.isFile }
 
-                mergeProcessor.inMemoryCompaction(files)
+                val postCompaction= File("./data/compact.sst")
+                mergeProcessor.bufferedCompaction(files.toMutableList(), postCompaction)
                 val expected = ResourceUtils.getFile("classpath:testAssertion/expectedSSTMerge.sst").readLines().toString()
-                val actual = ResourceUtils.getFile("./data/distenctSstMerge.sst").readLines().toString()
+                val actual = postCompaction.readLines().toString()
                 val ltm = System.currentTimeMillis()
 
-                println("First merging algorithm took: ${ltm - ftm}")
-                Assert.assertEquals(expected, actual)
-            }
-        }
-    }
 
-//    @Test
-//    fun writeToDisk() {
-//        GlobalScope.launch {
-//            File("./data/1591468789967.sst")
-//                    .bufferedWriter()
-//                    .use {
-//                        for (i in 100..250) {
-//                            it.write("${i}\t${UUID.randomUUID()}\n")
-//                        }
-//                    }
-//        }
-//    }
-
-    @Test
-    fun secondSSTMergingAlgorithmTest() {
-        runBlocking {
-            launch(Dispatchers.Main) {
-                val ftm = System.currentTimeMillis()
-
-                val files = ResourceUtils.getFile("classpath:simpleSample")
-                        .walkTopDown()
-                        .filter { it.isFile }
-
-                mergeProcessor.bufferedCompaction(files)
-                val expected = ResourceUtils.getFile("classpath:testAssertion/expectedSSTMerge2.sst").readLines().toString()
-                val actual = ResourceUtils.getFile("./data/distenctSstMerge2.sst").readLines().toString()
-                val ltm = System.currentTimeMillis()
-
-                println("Second merging algorithm took: ${ltm - ftm}")
-
+                println("merging algorithm took: ${ltm - ftm}")
                 Assert.assertEquals(expected, actual)
             }
         }
