@@ -1,5 +1,6 @@
 package com.example.sarah
 
+import com.example.sarah.filewriter.SSTFile
 import com.example.sarah.service.DB
 import com.example.sarah.service.MergeProcessor
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +14,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.springframework.util.ResourceUtils
+import org.springframework.util.ResourceUtils.getFile
 import java.io.File
 
 
@@ -23,10 +25,10 @@ class MergeSSTTests {
     private val mergeProcessor = MergeProcessor(db)
     private val mainThreadSurrogate = newSingleThreadContext("singleThreadForCoroutinesTest")
 
-
     @Before
     fun setUp() {
         Dispatchers.setMain(mainThreadSurrogate)
+        recreateFolder( File("./data/"))
     }
 
     @After
@@ -41,13 +43,14 @@ class MergeSSTTests {
         runBlocking {
             launch(Dispatchers.Main) {
                 val ftm = System.currentTimeMillis()
-                val files = ResourceUtils.getFile("classpath:simpleSample")
+                val files = getFile("classpath:simpleSample")
                         .walkTopDown()
                         .filter { it.isFile }
+                        .map { SSTFile(it, true) }
 
-                val postCompaction= File("./data/compact.sst")
+                val postCompaction = File("./data/compact.sst")
                 mergeProcessor.bufferedCompaction(files.toMutableList(), postCompaction)
-                val expected = ResourceUtils.getFile("classpath:testAssertion/expectedSSTMerge.sst").readLines().toString()
+                val expected = getFile("classpath:testAssertion/expectedSSTMerge.sst").readLines().toString()
                 val actual = postCompaction.readLines().toString()
                 val ltm = System.currentTimeMillis()
 

@@ -24,17 +24,11 @@ class AddElementsTest {
     @Before
     fun clearContext() {
         db.clear()
-        val sstDir = File("./data/sst")
-        val compactionDir = File("./data/compaction")
-        recreateFolder(sstDir)
-        recreateFolder(compactionDir)
+        recreateFolder( File("./data/"))
         loadData()
     }
 
-    private fun recreateFolder(sstDir: File) {
-        sstDir.deleteRecursively()
-        sstDir.mkdir()
-    }
+
 
     fun loadData() {
         ResourceUtils.getFile("classpath:sample")

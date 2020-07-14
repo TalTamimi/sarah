@@ -8,23 +8,25 @@ import java.lang.RuntimeException
 class BufferedRows(file: File, private val index: String) : AutoCloseable, Comparable<BufferedRows> {
 
     private val bufferedReader: BufferedReader = file.bufferedReader()
-    private var current: Row
+    private var currentRow: Row
 
     init {
-        val nextBuffer = bufferedReader.readLine() ?: throw RuntimeException("Compacting Empty File")
-        current = RowContructor(nextBuffer, index)
+        val firstLine = bufferedReader
+                .readLine()
+                ?: throw RuntimeException("Compacting Empty File")
+        currentRow = RowContructor(firstLine, index)
         next()
     }
 
 
-    fun get() = current
+    fun get() = currentRow
 
     fun next(): Boolean {
         val nextBuffer = bufferedReader.readLine()
         return if (nextBuffer == null)
             false
         else {
-            current = RowContructor(nextBuffer, index)
+            currentRow = RowContructor(nextBuffer, index)
             true
         }
     }
@@ -35,9 +37,9 @@ class BufferedRows(file: File, private val index: String) : AutoCloseable, Compa
 
     override fun compareTo(other: BufferedRows): Int {
         return when {
-            current.key < other.current.key -> -1
-            current.key > other.current.key -> 1
-            else -> current.index.compareTo(other.index)
+            currentRow.key < other.currentRow.key -> -1
+            currentRow.key > other.currentRow.key -> 1
+            else -> currentRow.index.compareTo(other.index)
         }
     }
 
